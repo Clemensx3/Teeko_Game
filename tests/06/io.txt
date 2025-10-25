@@ -1,0 +1,307 @@
+> ===| Welcome to       |===
+> ===| [I]ntricate      |===
+> ===| [S]quare         |===
+> ===| [P]lacement      |===
+> 
+> 
+> ===| Move 1: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | ·  ·  ·  ·  ·
+>  2 | ·  ·  ·  ·  ·
+>  3 | ·  ·  ·  ·  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 4
+> Player 2: 4
+> 
+? P1 > 
+< d 1
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< play d1
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< d1
+> 
+> ===| Move 1: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | ·  ·  ·  ■  ·
+>  2 | ·  ·  ·  ·  ·
+>  3 | ·  ·  ·  ·  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 3
+> Player 2: 4
+> 
+? P2 > 
+< c2
+> 
+> ===| Move 2: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | ·  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  ·
+>  3 | ·  ·  ·  ·  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 3
+> Player 2: 3
+> 
+? P1 > 
+< 3D
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< D3
+> 
+> ===| Move 2: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | ·  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  ·
+>  3 | ·  ·  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 2
+> Player 2: 3
+> 
+? P2 > 
+< a 1
+> 
+> [ERROR] Unknown command.
+> 
+? P2 > 
+< a1
+> 
+> ===| Move 3: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  ·
+>  3 | ·  ·  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 2
+> Player 2: 2
+> 
+? P1 > 
+< b3
+> 
+> ===| Move 3: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  ·
+>  3 | ·  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 1
+> Player 2: 2
+> 
+? P2 > 
+< a1
+> 
+> [ERROR] Field at coordinates occupied.
+> 
+? P2 > 
+< a2
+> 
+> ===| Move 4: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | □  ·  □  ·  ·
+>  3 | ·  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 1
+> Player 2: 1
+> 
+? P1 > 
+< b6
+> 
+> [ERROR] Coordinates not within board.
+> 
+? P1 > 
+< b 5
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< b5
+> 
+> ===| Move 4: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | □  ·  □  ·  ·
+>  3 | ·  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ■  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 0
+> Player 2: 1
+> 
+? P2 > 
+< e2
+> 
+> ===| Move 5: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | □  ·  □  ·  □
+>  3 | ·  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ■  ·  ·  ·
+> 
+? P1 > 
+< b5a5
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< b4 a5
+> 
+> [ERROR] No shiftable piece at coordinates.
+> 
+? P1 > 
+< b5 a5
+> 
+> ===| Move 5: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | □  ·  □  ·  □
+>  3 | ·  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P2 > 
+< a2 a3
+> 
+> ===| Move 6: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  □
+>  3 | □  ■  ·  ■  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P1 > 
+< b3 b5
+> 
+> [ERROR] Field at coordinates not adjacent to chosen piece.
+> 
+? P1 > 
+< b3 b4
+> 
+> ===| Move 6: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | ·  ·  □  ·  □
+>  3 | □  ·  ·  ■  ·
+>  4 | ·  ■  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P2 > 
+< c2 b2
+> 
+> ===| Move 7: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ■  ·
+>  2 | ·  □  ·  ·  □
+>  3 | □  ·  ·  ■  ·
+>  4 | ·  ■  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P1 > 
+< d1 d2
+> 
+> ===| Move 7: Player 2 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ·  ·
+>  2 | ·  □  ·  ■  □
+>  3 | □  ·  ·  ■  ·
+>  4 | ·  ■  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P2 > 
+< b2 a2
+> 
+> ===| Move 8: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ·  ·
+>  2 | □  ·  ·  ■  □
+>  3 | □  ·  ·  ■  ·
+>  4 | ·  ■  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+? P1 > 
+< d3 c 3
+> 
+> [ERROR] Unknown command.
+> 
+? P1 > 
+< d3 c3
+> 
+> ===| Final Game State |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | □  ·  ·  ·  ·
+>  2 | □  ·  ·  ■  □
+>  3 | □  ·  ■  ·  ·
+>  4 | ·  ■  ·  ·  ·
+>  5 | ■  ·  ·  ·  ·
+> 
+> ===| Winner: Player 1 |===

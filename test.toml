@@ -1,0 +1,65 @@
+[project_definition]
+binary_path = "./a2"
+makefile_path = "."
+make_targets = ["all"]
+project_name = "a2"
+global_timeout = 20
+
+[[testcases]]
+name = "Too Many Arguments"
+description = "Call the game with too many CLI arguments."
+type = "OrdIO"
+io_file = "./tests/01/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 255
+argv = ["enabled", "on"]
+
+[[testcases]]
+name = "First Prompt Quit"
+description = "Call quit on the first message prompt."
+type = "OrdIO"
+io_file = "./tests/02/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 0
+
+[[testcases]]
+name = "Coordinates Not On Board (Placing)"
+description = "Try to place pieces on non-existent board coordinates."
+type = "OrdIO"
+io_file = "./tests/03/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 1
+
+[[testcases]]
+name = "Occupied Field"
+description = "Try to place/shift to an occupied field."
+type = "OrdIO"
+io_file = "./tests/04/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 0
+
+[[testcases]]
+name = "BrOkEn CaPsLoCk"
+description = "Try different uppercase/lowercase inputs."
+type = "OrdIO"
+io_file = "./tests/05/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 0
+argv = ["disabled"]
+
+[[testcases]]
+name = "Small Mistakes"
+description = "Few smaller mistakes during the input."
+type = "OrdIO"
+io_file = "./tests/06/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 1
+
+[[testcases]]
+name = "Color Output"
+description = "Play the game with colored output."
+type = "OrdIO"
+io_file = "./tests/07/io.txt"
+io_prompt = "^P(1|2)\\s>\\s*$"
+exp_exit_code = 0
+argv = ["enabled"]

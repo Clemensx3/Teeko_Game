@@ -1,0 +1,3 @@
+> 
+> [ERROR] Usage: ./a2 [optional: color_enabled]
+> 

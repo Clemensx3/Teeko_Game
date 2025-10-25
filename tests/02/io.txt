@@ -1,0 +1,23 @@
+> ===| Welcome to       |===
+> ===| [I]ntricate      |===
+> ===| [S]quare         |===
+> ===| [P]lacement      |===
+> 
+> 
+> ===| Move 1: Player 1 |===
+> 
+>      A  B  C  D  E
+>    + -------------
+>  1 | ·  ·  ·  ·  ·
+>  2 | ·  ·  ·  ·  ·
+>  3 | ·  ·  ·  ·  ·
+>  4 | ·  ·  ·  ·  ·
+>  5 | ·  ·  ·  ·  ·
+> 
+> ---| Remaining Pieces |---
+> 
+> Player 1: 4
+> Player 2: 4
+> 
+? P1 > 
+< quit
