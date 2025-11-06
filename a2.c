@@ -49,12 +49,66 @@ bool checkIfCoordinatesOccupiedAndWithinBoard(int size, int board[size][size], i
     return true;
 }
 
-bool getUserInput(char* input, int size)
+bool checkIfValidCommandPlacing(char* input)
 {
-    if(fgets(input, size, stdin) == NULL)
+    //Check for whitespaces in front
+    int first_index = strspn(input, " \t\n\v\f\r");
+    if(!isalpha(input[first_index]))
     {
+      printf("Unknown command");
       return false;
     }
+    if(!isdigit(input[first_index+1]))
+    {
+      printf("Unknown command");
+      return false;
+    }
+
+    return true;
+}
+
+bool getInput(char* input, int size)
+{
+    int userInput = 0;
+    int i = 0;
+    do
+    {
+      userInput = getchar();
+      if (userInput == EOF)
+      {
+        return false;
+      }
+      if(i < size-1)
+      {
+        input[i] = (char)userInput;
+        i++;
+      }
+      
+    } while(userInput != '\n');
+}
+
+bool getUserInput(char* input, int size)
+{
+    int userInput = 0;
+    int i = 0;
+    do
+    {
+      userInput = getchar();
+      if (userInput == EOF)
+      {
+        return false;
+      }
+      if(userInput == ' ')
+      {
+        continue;
+      }
+      if(i < size-1)
+      {
+        input[i] = (char)userInput;
+        i++;
+      }
+      
+    } while(userInput != '\n');
 
     //Removes enter by getting index that = \n
     input[strcspn(input, "\n")] = '\0';
@@ -111,7 +165,7 @@ void placingPhase(int size, int board[size][size], bool color_status, int player
     {  
       if(status == 1)
       {
-        if(move_counter % 2 == 0 && player_2_pieces > 1)
+        if(move_counter % 2 == 0 && player_2_pieces > 0)
         {
           printf("\n");
           printf("===| Move %d: Player %d |===\n", 5-player_1_pieces, player_1);
