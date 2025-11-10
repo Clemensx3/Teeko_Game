@@ -49,83 +49,114 @@ bool checkIfCoordinatesOccupiedAndWithinBoard(int size, int board[size][size], i
     return true;
 }
 
-bool checkIfValidCommandPlacing(char* input)
+bool checkIfLetter(int userInput)
 {
-    //Check for whitespaces in front
-    int first_index = strspn(input, " \t\n\v\f\r");
-    if(!isalpha(input[first_index]))
+    if((userInput >= 'A' && userInput <= 'Z') || (userInput >= 'a' && userInput <= 'z'))
     {
-      printf("Unknown command");
-      return false;
+      return true;
     }
-    if(!isdigit(input[first_index+1]))
-    {
-      printf("Unknown command");
-      return false;
-    }
-
-    return true;
+    return false;
 }
 
-bool getInput(char* input, int size)
+bool checkIfNumber(int userInput)
 {
-    int userInput = 0;
-    int i = 0;
-    do
+    if(userInput >= '0' && userInput <= '9')
     {
-      userInput = getchar();
-      if (userInput == EOF)
-      {
-        return false;
-      }
-      if(i < size-1)
-      {
-        input[i] = (char)userInput;
-        i++;
-      }
-      
-    } while(userInput != '\n');
+      return true;
+    }
+    return false;
 }
 
-bool getUserInput(char* input, int size)
+bool checkIfUserQuit(char* userQuit, int size)
 {
-    int userInput = 0;
-    int i = 0;
-    do
-    {
-      userInput = getchar();
-      if (userInput == EOF)
-      {
-        return false;
-      }
-      if(userInput == ' ')
-      {
-        continue;
-      }
-      if(i < size-1)
-      {
-        input[i] = (char)userInput;
-        i++;
-      }
-      
-    } while(userInput != '\n');
-
-    //Removes enter by getting index that = \n
-    input[strcspn(input, "\n")] = '\0';
-
-    char lowercase_copy[size];
-    strcpy(lowercase_copy, input);
     for(int i = 0; i < size; i++)
     {
-      lowercase_copy[i] = tolower(lowercase_copy[i]);
+      userQuit[i] = tolower(userQuit[i]);
     }
 
-    if(strcmp(lowercase_copy, "quit") == 0)
+    if(strcmp(userQuit, "quit") == 0)
     {
-      return false;
+      return true;
     }
 
-    return true;
+    return false;
+}
+
+int getInput(char* input, int size, int* pointer_command_counter)
+{
+    int userInput = 0;
+    int i = 0;
+    int k = -1;
+    bool last_char_was_letter = false;
+    bool invalid_command = false;
+    bool expected_space = false;
+    char userQuit[size];
+    do
+    {
+      userInput = getchar();
+
+      if (userInput == EOF)
+      {
+        return -1;
+      }
+      if(checkIfLetter(userInput))
+      {
+        k++;
+        userQuit[k] = (char)userInput;
+      }
+
+      if((*pointer_command_counter) > 2)
+      {
+        invalid_command = true;
+      }
+      else if(last_char_was_letter && userInput == ' ')
+      {
+        invalid_command = true;
+      }
+      else if(userInput == ' ')
+      {
+        expected_space = false;
+      }
+      else if(checkIfLetter(userInput))
+      {
+        if(last_char_was_letter == false && expected_space == false)
+        {
+          input[i] = (char)userInput;
+          i++;
+          last_char_was_letter = true;
+          expected_space = true;
+        }
+        else
+        {
+          invalid_command = true;
+        }
+      }
+      else if(checkIfNumber(userInput))
+      {
+        if(last_char_was_letter)
+        {
+          input[i] = (char)userInput;
+          i++;
+          last_char_was_letter = false;
+          (*pointer_command_counter)++;
+          expected_space = true;
+        }
+        else
+        {
+          invalid_command = true;
+        }
+      }        
+
+    } while(userInput != '\n');
+    if(checkIfUserQuit(userQuit, size))
+    {
+      return -1;
+    }
+    if(invalid_command || last_char_was_letter)
+    {
+      return 0;
+    }
+    return 1;
 }
 
 int choosingPosition(int size, int board[size][size], int player, int* pieces_left)
@@ -134,9 +165,24 @@ int choosingPosition(int size, int board[size][size], int player, int* pieces_le
     char placing_position[10];
     int row = 0;
     int column = 0;
+    int command_counter = 0;
     printf("P%d > ", player);
-    bool status = getUserInput(placing_position, 10);
-    if(status == false)
+    int status = getInput(placing_position, 10, &command_counter);
+    if(command_counter > 1)
+    {
+      printf("\n");
+      printf("[ERROR] You must first place all your remaining pieces.\n");
+      printf("\n");
+      return 0;
+    }
+    if(status == 0)
+    {
+      printf("\n");
+      printf("[ERROR] Unknown command.\n");
+      printf("\n");
+      return 0;
+    }
+    if(status == -1)
     {
       return -1;
     }
@@ -213,10 +259,77 @@ void placingPhase(int size, int board[size][size], bool color_status, int player
     }
 }
 
-int main(void)
+int checkCommandLineArgument(int argc ,char* argv)
 {
-    int board[BOARD_SIZE][BOARD_SIZE] = {0};
-    welcome();
-    placingPhase(BOARD_SIZE, board, false, 1, 2);
-    //printBoard(5, board, false, 1, 2);
+    char lowercase_copy[argc];
+    strcpy(lowercase_copy, argv);
+    for(int i = 0; i < argc; i++)
+    {
+      lowercase_copy[i] = tolower(argv[i]);
+    }
+
+    if(strcmp(lowercase_copy, "enabled") == 0)
+    {
+      return 1;
+    }
+    else if((strcmp(lowercase_copy, "disabled") == 0))
+    {
+      return 0;
+    }
+    else
+    {
+      return -1;
+    }
+}
+
+int returnCommandLineArgument(int argc, char* argv[])
+{
+    if(argc > 2)
+    {
+      printf("\n");
+      printf("[ERROR] Usage: ./a2 [optional: color_enabled]\n");
+      printf("\n");
+      return -1;
+    }
+
+    int mode = 0;
+    if(argc == 1)
+    {
+      mode = 0;
+    }
+    else 
+    {
+      mode = checkCommandLineArgument(argc, argv[1]);
+    }
+    
+    if(mode == 1)
+    {
+      return 1;
+    }
+    else if(mode == 0)
+    {
+      return 0;
+    }
+    else 
+    {
+      printf("\n");
+      printf("[ERROR] (Optional) color output argument can either be ""disabled"" or ""enabled"".\n");
+      printf("\n");
+      return -1;
+    }
+}
+
+int main(int argc, char* argv[])
+{
+    int state = returnCommandLineArgument(argc, argv);
+    if(state == -1)
+    {
+      return -1;
+    }
+    else
+    {
+      int board[BOARD_SIZE][BOARD_SIZE] = {0};
+      welcome();
+      placingPhase(BOARD_SIZE, board, state, 1, 2);
+    }   
 }
