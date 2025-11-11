@@ -298,7 +298,73 @@ int checkBoard(int size, int board[size][size], int player, int* pieces_left)
     return -1;
 }
 
-void initializeGame(int size, int board[size][size], bool color_status, int player_1, int player_2)
+bool checkWin(int size, int board[size][size], int player)
+{
+    for (int r = 0; r < size; r++)
+    {
+        for (int c = 0; c < size; c++)
+        {
+            if (board[r][c] != player)
+            {
+                continue;
+            }
+
+            if (c <= size - 4)
+            {
+                if (board[r][c+1] == player &&
+                    board[r][c+2] == player &&
+                    board[r][c+3] == player)
+                {
+                    return true;
+                }
+            }
+
+            if (r <= size - 4)
+            {
+                if (board[r+1][c] == player &&
+                    board[r+2][c] == player &&
+                    board[r+3][c] == player)
+                {
+                    return true;
+                }
+            }
+
+            if (r < size - 1 && c < size - 1)
+            {
+                if (board[r][c+1]   == player &&
+                    board[r+1][c]   == player &&
+                    board[r+1][c+1] == player)
+                {
+                    return true;
+                }
+            }
+
+            if (r <= size - 4 && c <= size - 4)
+            {
+                if (board[r+1][c+1] == player &&
+                    board[r+2][c+2] == player &&
+                    board[r+3][c+3] == player)
+                {
+                    return true;
+                }
+            }
+
+            if (r >= 3 && c <= size - 4)
+            {
+                if (board[r-1][c+1] == player &&
+                    board[r-2][c+2] == player &&
+                    board[r-3][c+3] == player)
+                {
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+int initializeGame(int size, int board[size][size], bool color_status, int player_1, int player_2)
 {
     int current_player = 0;
     int player_current_pieces[] = {4,4};
@@ -309,7 +375,7 @@ void initializeGame(int size, int board[size][size], bool color_status, int play
     while(1)
     {  
       current_player = (move_counter % 2) + 1;
-      display_round = (move_counter / 2) +1;
+      display_round = (move_counter / 2) + 1;
       if(status == 1)
       {
         printf("\n");
@@ -324,21 +390,33 @@ void initializeGame(int size, int board[size][size], bool color_status, int play
       }
    
       status = checkBoard(size, board, current_player, player_current_pieces);
+      
       if(status == 0)
       {
         continue;
       }
       else if(status == -1)
       {
-        break;
+        break; 
       }
-      status = 1;
+
+      if (checkWin(size, board, current_player))
+      {
+          printf("\n===| Final Game State |===\n");
+          printf("\n");
+          printBoard(size, board, color_status, player_1, player_2);
+          
+          printf("===| Winner: Player %d |===\n", current_player);
+          
+          return current_player;
+      }
+
+      status = 1; 
       move_counter++;
     }
+
+    return 0;
 }
-
-
-
 
 int checkCommandLineArgument(int argc ,char* argv)
 {
@@ -411,6 +489,6 @@ int main(int argc, char* argv[])
     {
       int board[BOARD_SIZE][BOARD_SIZE] = {0};
       welcome();
-      initializeGame(BOARD_SIZE, board, state, 1, 2);
+      return initializeGame(BOARD_SIZE, board, state, 1, 2);
     }   
 }
