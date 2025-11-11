@@ -24,13 +24,21 @@ void remainingPieces(int player_1_pieces, int player_2_pieces)
     printf("\n");
 }
 
-void returnPosition(char *placing_position, int *row, int *column)
+void returnPositionPlacing(char *placing_position, int *row, int *column)
 {
     *row = placing_position[1] - '1';
     *column = toupper(placing_position[0]) - 'A';
 }
 
-bool checkIfCoordinatesOccupiedAndWithinBoard(int size, int board[size][size], int row, int column)
+void returnPositionMoving(char *placing_position, int* moves)
+{
+    moves[0] = placing_position[1] - '1';
+    moves[1] = toupper(placing_position[0]) - 'A';
+    moves[2] = placing_position[3] - '1';
+    moves[3] = toupper(placing_position[2]) - 'A';
+}
+
+bool checkIfCoordinatesWithinBoard(int size, int row, int column)
 {
     if (row < 0 || row >= size || column < 0 || column >= size)
     {
@@ -39,6 +47,12 @@ bool checkIfCoordinatesOccupiedAndWithinBoard(int size, int board[size][size], i
       printf("\n");
       return false;
     }
+
+    return true;
+}
+
+bool checkIfCoordinatesOccupied(int size, int board[size][size], int row, int column)
+{
     if (board[row][column] != 0)
     {
       printf("\n");
@@ -67,9 +81,9 @@ bool checkIfNumber(int userInput)
     return false;
 }
 
-bool checkIfUserQuit(char* userQuit, int size)
+bool checkIfUserQuit(char* userQuit)
 {
-    for(int i = 0; i < size; i++)
+    for(int i = 0; userQuit[i] != '\0'; i++)
     {
       userQuit[i] = tolower(userQuit[i]);
     }
@@ -90,7 +104,7 @@ int getInput(char* input, int size, int* pointer_command_counter)
     bool last_char_was_letter = false;
     bool invalid_command = false;
     bool expected_space = false;
-    char userQuit[size];
+    char userQuit[100];
     do
     {
       userInput = getchar();
@@ -102,7 +116,10 @@ int getInput(char* input, int size, int* pointer_command_counter)
       if(checkIfLetter(userInput))
       {
         k++;
-        userQuit[k] = (char)userInput;
+        if (k < size - 1)
+        {
+          userQuit[k] = (char)userInput;
+        }
       }
 
       if((*pointer_command_counter) > 2)
@@ -148,7 +165,7 @@ int getInput(char* input, int size, int* pointer_command_counter)
       }        
 
     } while(userInput != '\n');
-    if(checkIfUserQuit(userQuit, size))
+    if(checkIfUserQuit(userQuit))
     {
       return -1;
     }
@@ -159,22 +176,87 @@ int getInput(char* input, int size, int* pointer_command_counter)
     return 1;
 }
 
-int choosingPosition(int size, int board[size][size], int player, int* pieces_left)
+int placingPhase(char* user_input, int size, int board[size][size], int player, int* pieces_left)
 {
-    //Last two positions needed for \n and \0
-    char placing_position[10];
     int row = 0;
     int column = 0;
-    int command_counter = 0;
-    printf("P%d > ", player);
-    int status = getInput(placing_position, 10, &command_counter);
-    if(command_counter > 1)
+    returnPositionPlacing(user_input, &row, &column);
+
+    if(checkIfCoordinatesWithinBoard(size, row, column) && checkIfCoordinatesOccupied(size, board, row, column))
+    {
+      board[row][column] = player;
+      pieces_left[player-1]--;
+      return 1;
+    }
+    else
+    {         
+      return 0;
+    }
+}
+
+bool isAllowedMove(int* moves)
+{
+    //printf("\n Inside allowed move: %d %d %d %d \n", moves[0], moves[1], moves[2], moves[3]);
+    int allowed_moves[4][2] = {
+      {moves[0] - 1, moves[1]},
+      {moves[0] + 1, moves[1]},
+      {moves[0], moves[1] - 1},
+      {moves[0], moves[1] + 1}
+    };
+
+    for(int i = 0; i < 4; i++)
+    {
+      if(moves[3] == allowed_moves[i][1] && moves[2] == allowed_moves[i][0])
+      {
+        return true;
+      }
+    }
+    return false;
+}
+
+int movingPhase(char* user_input, int size, int board[size][size], int player)
+{
+    int moves[] = {0, 0, 0, 0};
+    returnPositionMoving(user_input, moves);
+
+    //printf("\n Inside movingphase: %d %d %d %d \n", moves[0], moves[1], moves[2], moves[3]);
+    if(checkIfCoordinatesWithinBoard(size, moves[0], moves[1]) == false || checkIfCoordinatesWithinBoard(size, moves[2], moves[3]) == false)
+    {
+      return 0;
+    }
+    if(board[moves[0]][moves[1]] != player)
     {
       printf("\n");
-      printf("[ERROR] You must first place all your remaining pieces.\n");
+      printf("[ERROR] No shiftable piece at coordinates.\n");
       printf("\n");
       return 0;
     }
+    if(checkIfCoordinatesOccupied(size, board, moves[2], moves[3]) == false)
+    {
+      return 0;
+    }
+
+    if(isAllowedMove(moves) == false)
+    {
+      printf("\n");
+      printf("[ERROR] Field at coordinates not adjacent to chosen piece.\n");
+      printf("\n");
+      return 0;
+    }
+
+    board[moves[0]][moves[1]] = 0;
+    board[moves[2]][moves[3]] = player;
+    return 1;
+}
+
+int checkBoard(int size, int board[size][size], int player, int* pieces_left)
+{
+    //Last two positions needed for \n and \0
+    char user_input[100];   
+    int command_counter = 0;
+    printf("P%d > ", player);
+    int status = getInput(user_input, 100, &command_counter);
+
     if(status == 0)
     {
       printf("\n");
@@ -186,78 +268,77 @@ int choosingPosition(int size, int board[size][size], int player, int* pieces_le
     {
       return -1;
     }
-    returnPosition(placing_position, &row, &column);
 
-    if(checkIfCoordinatesOccupiedAndWithinBoard(size, board, row, column))
+    if((pieces_left[0] + pieces_left[1]) > 0)
     {
-      board[row][column] = player;
-      (*pieces_left)--;
-      return 1;
+      if(command_counter > 1)
+      {
+        printf("\n");
+        printf("[ERROR] You must first place all your remaining pieces.\n");
+        printf("\n");
+        return 0;
+      }
+      return placingPhase(user_input, size, board, player, pieces_left);
+
     }
-    else
-    {         
-      return 0;
+
+    if((pieces_left[0] + pieces_left[1]) <= 0)
+    {
+      if(command_counter == 1)
+      {
+        printf("\n");
+        printf("[ERROR] You must specify a piece to shift and a target field.\n");
+        printf("\n");
+        return 0;
+      } 
+      return movingPhase(user_input, size, board, player);   
     }
+    
+    //Might need to change
+    return -1;
 }
 
-void placingPhase(int size, int board[size][size], bool color_status, int player_1, int player_2)
+void initializeGame(int size, int board[size][size], bool color_status, int player_1, int player_2)
 {
-    int player_1_pieces = 4;
-    int player_2_pieces = 4;
+    int current_player = 0;
+    int player_current_pieces[] = {4,4};
     int move_counter = 0;
+    int display_round = 0;
     int status = 1;
 
-    while((player_1_pieces + player_2_pieces) > 0)
+    while(1)
     {  
+      current_player = (move_counter % 2) + 1;
+      display_round = (move_counter / 2) +1;
       if(status == 1)
       {
-        if(move_counter % 2 == 0 && player_2_pieces > 0)
-        {
-          printf("\n");
-          printf("===| Move %d: Player %d |===\n", 5-player_1_pieces, player_1);
-          printf("\n");
-        }
-        else
-        {
-          printf("\n");
-          printf("===| Move %d: Player %d |===\n", 5-player_2_pieces, player_2);
-          printf("\n");
-        }
+        printf("\n");
+        printf("===| Move %d: Player %d |===\n", display_round, current_player);
+        printf("\n");
 
         printBoard(size, board, color_status, player_1, player_2);
-        remainingPieces(player_1_pieces, player_2_pieces);
+        if((player_current_pieces[0] + player_current_pieces[1]) > 0)
+        {
+          remainingPieces(player_current_pieces[0], player_current_pieces[1]);
+        }
       }
-
-      if(move_counter % 2 == 0)
-      {     
-        status = choosingPosition(size, board, player_1, &player_1_pieces);
-        if(status == 0)
-        {
-          continue;
-        }
-        else if(status == -1)
-        {
-          break;
-        }
-        status = 1;
-        move_counter++;
+   
+      status = checkBoard(size, board, current_player, player_current_pieces);
+      if(status == 0)
+      {
+        continue;
       }
-      else
-      {     
-        status = choosingPosition(size, board, player_2, &player_2_pieces);
-        if(status == 0)
-        {
-          continue;
-        }
-        else if(status == -1)
-        {
-          break;
-        }
-        status = 1;
-        move_counter++;
-      }     
+      else if(status == -1)
+      {
+        break;
+      }
+      status = 1;
+      move_counter++;
     }
 }
+
+
+
 
 int checkCommandLineArgument(int argc ,char* argv)
 {
@@ -313,7 +394,7 @@ int returnCommandLineArgument(int argc, char* argv[])
     else 
     {
       printf("\n");
-      printf("[ERROR] (Optional) color output argument can either be ""disabled"" or ""enabled"".\n");
+      printf("[ERROR] (Optional) color output argument can either be \"disabled\" or \"enabled\".\n");
       printf("\n");
       return -1;
     }
@@ -330,6 +411,6 @@ int main(int argc, char* argv[])
     {
       int board[BOARD_SIZE][BOARD_SIZE] = {0};
       welcome();
-      placingPhase(BOARD_SIZE, board, state, 1, 2);
+      initializeGame(BOARD_SIZE, board, state, 1, 2);
     }   
 }
