@@ -5,6 +5,7 @@
 #include "framework.h"
 
 #define BOARD_SIZE (5)
+#define INPUT_SIZE (100)
 
 void welcome(void)
 {
@@ -81,98 +82,140 @@ bool checkIfNumber(int userInput)
     return false;
 }
 
-bool checkIfUserQuit(char* userQuit)
+int readUserInput(char* command_buffer, char* raw_buffer, 
+                  bool* p_invalid_format, int* p_command_counter, 
+                  bool* p_last_was_letter, bool* p_expect_space)
 {
-    for(int i = 0; userQuit[i] != '\0'; i++)
+    int cmd_idx = 0;
+    int raw_idx = 0;
+    int userInput;
+    bool leading_space = true;
+    *p_command_counter = 0; 
+    *p_expect_space = false; 
+
+    do
     {
-      userQuit[i] = tolower(userQuit[i]);
+        userInput = getchar();
+        if (userInput == EOF)
+        {
+            return -1;
+        }
+
+        if (leading_space && !isspace(userInput) && userInput != '\n')
+        {
+            leading_space = false;
+        }
+        if (!leading_space && userInput != '\n')
+        {
+            if (raw_idx < INPUT_SIZE - 1)
+            {
+                raw_buffer[raw_idx++] = (char)userInput;
+            }
+        }
+
+        if (isspace(userInput) || userInput == '\n')
+        {
+            if (*p_last_was_letter)
+            {
+                *p_invalid_format = true;
+            }
+            *p_last_was_letter = false;
+
+            if (*p_expect_space)
+            {
+                *p_expect_space = false;
+            }
+        }
+        else if (checkIfLetter(userInput))
+        {
+            if (*p_expect_space)
+            {
+                *p_invalid_format = true;
+            }
+            
+            if (*p_last_was_letter)
+            {
+                *p_invalid_format = true;
+            }
+            *p_last_was_letter = true;
+            if (cmd_idx < INPUT_SIZE - 1)
+            {
+                command_buffer[cmd_idx++] = (char)userInput;
+            }
+        }
+        else if (checkIfNumber(userInput))
+        {
+            if (!*p_last_was_letter)
+            {
+                *p_invalid_format = true; 
+            }
+            *p_last_was_letter = false;
+            (*p_command_counter)++; 
+            *p_expect_space = true;
+            
+            if (cmd_idx < INPUT_SIZE - 1)
+            {
+                command_buffer[cmd_idx++] = (char)userInput;
+            }
+        }
+        else
+        {
+            *p_invalid_format = true; 
+        }
+
+    } while (userInput != '\n');
+    
+    command_buffer[cmd_idx] = '\0';
+    raw_buffer[raw_idx] = '\0';
+    return 1;
+}
+
+bool processQuitCheck(char* raw_buffer)
+{
+    int i = strlen(raw_buffer) - 1;
+    while (i >= 0 && isspace(raw_buffer[i]))
+    {
+        raw_buffer[i--] = '\0';
+    }
+    
+    for (i = 0; raw_buffer[i]; i++)
+    {
+        raw_buffer[i] = tolower(raw_buffer[i]);
     }
 
-    if(strcmp(userQuit, "quit") == 0)
+    if (strcmp(raw_buffer, "quit") == 0)
     {
-      return true;
-    }
-
+        return true;
+    }  
     return false;
 }
 
 int getInput(char* input, int size, int* pointer_command_counter)
 {
-    int userInput = 0;
-    int i = 0;
-    int k = -1;
-    bool last_char_was_letter = false;
-    bool invalid_command = false;
-    bool expected_space = false;
-    char userQuit[100];
-    do
-    {
-      userInput = getchar();
+    char command_buffer[INPUT_SIZE] = {0};
+    char raw_buffer[INPUT_SIZE] = {0};
+    
+    bool invalid_format = false;
+    bool last_was_letter = false;
+    bool expect_space = false; 
 
-      if (userInput == EOF)
-      {
+    int read_status = readUserInput(command_buffer, raw_buffer, 
+                                    &invalid_format, pointer_command_counter, 
+                                    &last_was_letter, &expect_space);
+    
+    if (read_status == -1 || processQuitCheck(raw_buffer))
+    {
         return -1;
-      }
-      if(checkIfLetter(userInput))
-      {
-        k++;
-        if (k < size - 1)
-        {
-          userQuit[k] = (char)userInput;
-        }
-      }
-
-      if((*pointer_command_counter) > 2)
-      {
-        invalid_command = true;
-      }
-      else if(last_char_was_letter && userInput == ' ')
-      {
-        invalid_command = true;
-      }
-      else if(userInput == ' ')
-      {
-        expected_space = false;
-      }
-      else if(checkIfLetter(userInput))
-      {
-        if(last_char_was_letter == false && expected_space == false)
-        {
-          input[i] = (char)userInput;
-          i++;
-          last_char_was_letter = true;
-          expected_space = true;
-        }
-        else
-        {
-          invalid_command = true;
-        }
-      }
-      else if(checkIfNumber(userInput))
-      {
-        if(last_char_was_letter)
-        {
-          input[i] = (char)userInput;
-          i++;
-          last_char_was_letter = false;
-          (*pointer_command_counter)++;
-          expected_space = true;
-        }
-        else
-        {
-          invalid_command = true;
-        }
-      }        
-
-    } while(userInput != '\n');
-    if(checkIfUserQuit(userQuit))
-    {
-      return -1;
     }
-    if(invalid_command || last_char_was_letter)
+
+    if (invalid_format || last_was_letter || strlen(command_buffer) == 0)
     {
-      return 0;
+        return 0; 
     }
+
+    strncpy(input, command_buffer, size - 1);
+    input[size - 1] = '\0';
+    
     return 1;
 }
 
@@ -196,7 +239,6 @@ int placingPhase(char* user_input, int size, int board[size][size], int player, 
 
 bool isAllowedMove(int* moves)
 {
-    //printf("\n Inside allowed move: %d %d %d %d \n", moves[0], moves[1], moves[2], moves[3]);
     int allowed_moves[4][2] = {
       {moves[0] - 1, moves[1]},
       {moves[0] + 1, moves[1]},
@@ -252,10 +294,10 @@ int movingPhase(char* user_input, int size, int board[size][size], int player)
 int checkBoard(int size, int board[size][size], int player, int* pieces_left)
 {
     //Last two positions needed for \n and \0
-    char user_input[100];   
+    char user_input[INPUT_SIZE];   
     int command_counter = 0;
     printf("P%d > ", player);
-    int status = getInput(user_input, 100, &command_counter);
+    int status = getInput(user_input, INPUT_SIZE, &command_counter);
 
     if(status == 0)
     {
@@ -418,14 +460,17 @@ int initializeGame(int size, int board[size][size], bool color_status, int playe
     return 0;
 }
 
-int checkCommandLineArgument(int argc ,char* argv)
+int checkCommandLineArgument(char* argv)
 {
-    char lowercase_copy[argc];
+    char lowercase_copy[INPUT_SIZE];
     strcpy(lowercase_copy, argv);
-    for(int i = 0; i < argc; i++)
+    int i = 0;
+    while (argv[i]) 
     {
-      lowercase_copy[i] = tolower(argv[i]);
+        lowercase_copy[i] = tolower(argv[i]);
+        i++;
     }
+    lowercase_copy[i] = '\0';
 
     if(strcmp(lowercase_copy, "enabled") == 0)
     {
@@ -458,7 +503,7 @@ int returnCommandLineArgument(int argc, char* argv[])
     }
     else 
     {
-      mode = checkCommandLineArgument(argc, argv[1]);
+      mode = checkCommandLineArgument(argv[1]);
     }
     
     if(mode == 1)
