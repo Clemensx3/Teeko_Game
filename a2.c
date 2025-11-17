@@ -1,3 +1,10 @@
+//----------------------------------------------------------------------------------------------------------------------
+/// <Explanation of the program ...>
+/// <... May have multiple lines.>
+///
+/// Author: <matriculation number>
+//----------------------------------------------------------------------------------------------------------------------
+
 #include <stdio.h>
 #include <stdbool.h>
 #include <ctype.h>
@@ -78,7 +85,13 @@ bool checkIfNumber(int userInput)
   return false;
 }
 
-void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_idx, bool* p_leading_space)
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Ignores leading whitepaces and copies every char after finding none space
+/// @param userInput current input char
+/// @param raw_buffer array of input string 
+/// @param p_raw_index keeps track index in string array
+/// @param p_leading_space keeps track while user enters only spaces before first valid char
+void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_index, bool* p_leading_space)
 {
   if (*p_leading_space && !isspace(userInput) && userInput != '\n')
   {
@@ -87,17 +100,17 @@ void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_idx, bool* 
   
   if (!*p_leading_space && userInput != '\n')
   {
-    if (*p_raw_idx < INPUT_SIZE - 1) 
+    if (*p_raw_index < INPUT_SIZE - 1) 
     {
-      raw_buffer[(*p_raw_idx)++] = (char)userInput;
+      raw_buffer[(*p_raw_index)++] = (char)userInput;
     }
   }
 }
 
 int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format, int* p_command_counter, bool* p_last_was_letter, bool* p_expect_space)
 {
-  int cmd_idx = 0;
-  int raw_idx = 0;
+  int commmand_index = 0;
+  int raw_index = 0;
   int userInput;
   bool leading_space = true;
   *p_command_counter = 0; 
@@ -110,7 +123,7 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
     {
       return -1;
     }
-    handleRawBufferChar(userInput, raw_buffer, &raw_idx, &leading_space);
+    handleRawBufferChar(userInput, raw_buffer, &raw_index, &leading_space);
 
     if (isspace(userInput) || userInput == '\n')
     {
@@ -131,9 +144,9 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
         *p_invalid_format = true;
       }
       *p_last_was_letter = true;
-      if (cmd_idx < INPUT_SIZE - 1)
+      if (commmand_index < INPUT_SIZE - 1)
       {
-        command_buffer[cmd_idx++] = (char)userInput;
+        command_buffer[commmand_index++] = (char)userInput;
       }
     }
     else if (checkIfNumber(userInput))
@@ -146,9 +159,9 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
       (*p_command_counter)++; 
       *p_expect_space = true;
         
-      if (cmd_idx < INPUT_SIZE - 1)
+      if (commmand_index < INPUT_SIZE - 1)
       {
-        command_buffer[cmd_idx++] = (char)userInput;
+        command_buffer[commmand_index++] = (char)userInput;
       }
       }
       else
@@ -157,8 +170,8 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
       }
   } while (userInput != '\n');
   
-  command_buffer[cmd_idx] = '\0';
-  raw_buffer[raw_idx] = '\0';
+  command_buffer[commmand_index] = '\0';
+  raw_buffer[raw_index] = '\0';
   return 1;
 }
 
@@ -305,7 +318,7 @@ int checkBoard(int size, int board[size][size], int player, int* pieces_left)
   {
     if (command_counter > 1)
     {
-      printf("\n[ERROR] You must first place all your remaining pieces.\n");
+      printf("\n[ERROR] You must first place all your remaining pieces.\n\n");
       return 0;
     }
     return placingPhase(user_input, size, board, player, pieces_left);
@@ -500,5 +513,5 @@ int main(int argc, char* argv[])
     int board[BOARD_SIZE][BOARD_SIZE] = {0};
     printWelcome();
     return initializeGame(BOARD_SIZE, board, state, PLAYER_ONE_ID, PLAYER_TWO_ID);
-  }   
+  }
 }
