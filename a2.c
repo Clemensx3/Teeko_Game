@@ -1,9 +1,15 @@
-//----------------------------------------------------------------------------------------------------------------------
-/// <Explanation of the program ...>
-/// <... May have multiple lines.>
-///
-/// Author: <matriculation number>
-//----------------------------------------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
+// a2.c
+//
+// Game inspired by Teeko. 
+// Two players play against each other and try to reach a winning pattern.
+// Divided into placing phase and moving phase.
+//
+// Group: Clemens Brunner
+//
+// Author: 12513567
+//------------------------------------------------------------------------------
+//
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -17,6 +23,8 @@
 #define PLAYER_TWO_ID (2)
 #define PIECES_TO_PLACE (4)
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Prints welcome message and game title
 void printWelcome(void)
 {
   printf("===| Welcome to       |===\n");
@@ -25,6 +33,10 @@ void printWelcome(void)
   printf("===| [P]lacement      |===\n\n");
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Displays the number of pieces remaining for both players
+/// @param player_1_pieces Number of pieces Player 1 has left to place
+/// @param player_2_pieces Number of pieces Player 2 has left to place
 void printRemainingPieces(int player_1_pieces, int player_2_pieces)
 {
   printf("---| Remaining Pieces |---\n");
@@ -32,20 +44,34 @@ void printRemainingPieces(int player_1_pieces, int player_2_pieces)
   printf("Player 2: %d\n\n", player_2_pieces);
 }
 
-void returnPositionPlacing(char *placing_position, int *row, int *column)
+/// @brief Converts input position into useable row and column position
+/// @param placing_command String of users placing position input
+/// @param row Pointer to store the calculated row index
+/// @param column Pointer to store the calculated column index 
+void returnPositionPlacing(char *placing_command, int *row, int *column)
 {
-  *row = placing_position[1] - '1';
-  *column = toupper(placing_position[0]) - 'A';
+  *row = placing_command[1] - '1';
+  *column = toupper(placing_command[0]) - 'A';
 }
 
-void returnPositionMoving(char *placing_position, int* moves)
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Converts input position into useable row and column position
+/// @param moving_command String of user move input
+/// @param moves Array to store row and column from where to move to dedicated destination
+void returnPositionMoving(char *moving_command, int* moves)
 {
-  moves[0] = placing_position[1] - '1';
-  moves[1] = toupper(placing_position[0]) - 'A';
-  moves[2] = placing_position[3] - '1';
-  moves[3] = toupper(placing_position[2]) - 'A';
+  moves[0] = moving_command[1] - '1';
+  moves[1] = toupper(moving_command[0]) - 'A';
+  moves[2] = moving_command[3] - '1';
+  moves[3] = toupper(moving_command[2]) - 'A';
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if position is within boundries of board
+/// @param size Dimension of board
+/// @param row Row that needs to be checked 
+/// @param column Column that needs to be checked 
+/// @return True if valid, false if not
 bool checkIfCoordinatesWithinBoard(int size, int row, int column)
 {
   if (row < 0 || row >= size || column < 0 || column >= size)
@@ -57,6 +83,13 @@ bool checkIfCoordinatesWithinBoard(int size, int row, int column)
   return true;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief checks if position is already occupied by piece
+/// @param size Dimensions of board
+/// @param board Board array
+/// @param row Row to check
+/// @param column Column to check 
+/// @return False if occupied and true if free
 bool checkIfCoordinatesOccupied(int size, int board[size][size], int row, int column)
 {
   if (board[row][column] != 0)
@@ -67,6 +100,10 @@ bool checkIfCoordinatesOccupied(int size, int board[size][size], int row, int co
   return true;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if input is a letter
+/// @param userInput Current input character
+/// @return True if letter otherwise or false
 bool checkIfLetter(int userInput)
 {
   if ((userInput >= 'A' && userInput <= 'Z') || (userInput >= 'a' && userInput <= 'z'))
@@ -76,6 +113,10 @@ bool checkIfLetter(int userInput)
   return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if input is a number
+/// @param userInput Current input character 
+/// @return True if letter otherwise or false
 bool checkIfNumber(int userInput)
 {
   if (userInput >= '0' && userInput <= '9')
@@ -87,10 +128,10 @@ bool checkIfNumber(int userInput)
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief Ignores leading whitepaces and copies every char after finding none space
-/// @param userInput current input char
-/// @param raw_buffer array of input string 
-/// @param p_raw_index keeps track index in string array
-/// @param p_leading_space keeps track while user enters only spaces before first valid char
+/// @param userInput Current input
+/// @param raw_buffer Array of input string 
+/// @param p_raw_index Keeps track index in string array
+/// @param p_leading_space Keeps track while user enters only spaces before first valid char
 void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_index, bool* p_leading_space)
 {
   if (*p_leading_space && !isspace(userInput) && userInput != '\n')
@@ -107,14 +148,24 @@ void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_index, bool
   }
 }
 
-int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format, int* p_command_counter, bool* p_last_was_letter, bool* p_expect_space)
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Reads characters to build command and raw buffers while validating format
+/// @param command_buffer Buffer to store game commands
+/// @param raw_buffer Buffer to store raw input for quit check
+/// @param p_invalid_format Pointer keep track if input is valid
+/// @param p_command_counter Pointer to count valid coordinate pairs
+/// @param p_last_was_letter Pointer to track if previous character was a letter
+/// @param p_expect_space Pointer to track if a space is required before next command
+/// @return -1 if EOF is encountered, 1 if the line was read successfully.
+int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format,
+  int* p_command_counter, bool* p_last_was_letter, bool* p_expect_space)
 {
-  int commmand_index = 0;
+  int command_index = 0;
   int raw_index = 0;
   int userInput;
   bool leading_space = true;
-  *p_command_counter = 0; 
-  *p_expect_space = false; 
+  *p_command_counter = 0;
+  *p_expect_space = false;
 
   do
   {
@@ -139,14 +190,14 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
     }
     else if (checkIfLetter(userInput))
     {
-      if (*p_expect_space || *p_last_was_letter)
+      if (*p_expect_space || *p_last_was_letter) 
       {
         *p_invalid_format = true;
       }
       *p_last_was_letter = true;
-      if (commmand_index < INPUT_SIZE - 1)
+      if (command_index < INPUT_SIZE - 1)
       {
-        command_buffer[commmand_index++] = (char)userInput;
+        command_buffer[command_index++] = (char)userInput;
       }
     }
     else if (checkIfNumber(userInput))
@@ -159,9 +210,9 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
       (*p_command_counter)++; 
       *p_expect_space = true;
         
-      if (commmand_index < INPUT_SIZE - 1)
+      if (command_index < INPUT_SIZE - 1)
       {
-        command_buffer[commmand_index++] = (char)userInput;
+        command_buffer[command_index++] = (char)userInput;
       }
       }
       else
@@ -170,11 +221,15 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
       }
   } while (userInput != '\n');
   
-  command_buffer[commmand_index] = '\0';
+  command_buffer[command_index] = '\0';
   raw_buffer[raw_index] = '\0';
   return 1;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if raw user input matches "quit" (case insensitive)
+/// @param raw_buffer The input string, which will be trimmed and lowercased.
+/// @return True if the input is "quit", false otherwise
 bool checkQuit(char* raw_buffer)
 {
   int i = strlen(raw_buffer) - 1;
@@ -195,6 +250,12 @@ bool checkQuit(char* raw_buffer)
   return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Reads a line, checks for quit, and validates commands
+/// @param input The destination buffer where valid and clean command will be copied
+/// @param size The size of the input buffer
+/// @param pointer_command_counter Pointer to store the number of valid commands found
+/// @return -1 if user quits or EOF, 0 if input is invalid, 1 if input is valid
 int getInput(char* input, int size, int* pointer_command_counter)
 {
   char command_buffer[INPUT_SIZE] = {0};
@@ -202,9 +263,10 @@ int getInput(char* input, int size, int* pointer_command_counter)
   
   bool invalid_format = false;
   bool last_was_letter = false;
-  bool expect_space = false; 
+  bool expect_space = false;
 
-  int read_status = readUserInput(command_buffer, raw_buffer, &invalid_format, pointer_command_counter, &last_was_letter, &expect_space);
+  int read_status = readUserInput(command_buffer, raw_buffer, &invalid_format,
+    pointer_command_counter, &last_was_letter, &expect_space);
   
   if (read_status == -1 || checkQuit(raw_buffer))
   {
@@ -222,6 +284,15 @@ int getInput(char* input, int size, int* pointer_command_counter)
   return 1;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Executes the logic for the "Placement Phase"
+///        Updates the board and decreases pieces left
+/// @param user_input Clean command string containing coordinates
+/// @param size The dimension the board
+/// @param board The game board array
+/// @param player Current player
+/// @param pieces_left Array tracking number of pieces remaining for both players
+/// @return 1 if the piece was successfully placed, 0 if the move was invalid.
 int placingPhase(char* user_input, int size, int board[size][size], int player, int* pieces_left)
 {
   int row = 0;
@@ -234,19 +305,20 @@ int placingPhase(char* user_input, int size, int board[size][size], int player, 
     pieces_left[player-1]--;
     return 1;
   }
-  else
-  {         
-    return 0;
-  }
+  return 0;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Verifies if move is valid by checking if the destination is adjacent
+/// @param player_move Array containing move command coordinates
+/// @return true if the target is exactly one step away from the source, false otherwise.
 bool checkAllowedMove(int* player_move)
 {
   int row_player = player_move[0];
   int column_player = player_move[1];
 
   int allowed_moves[8][2] = {
-    {row_player - 1, column_player}, 
+    {row_player - 1, column_player},
     {row_player + 1, column_player},
     {row_player, column_player - 1},
     {row_player, column_player + 1},
@@ -266,12 +338,20 @@ bool checkAllowedMove(int* player_move)
   return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Executes the logic for the "Movement Phase" amd updates the board
+/// @param user_input Clean command string containing coordinates
+/// @param size The dimension the board
+/// @param board The game board array
+/// @param player Current player
+/// @return 1 if the piece was successfully moved, 0 if the move was invalid.
 int movingPhase(char* user_input, int size, int board[size][size], int player)
 {
   int player_move[] = {0, 0, 0, 0};
   returnPositionMoving (user_input, player_move);
 
-  if (checkIfCoordinatesWithinBoard(size, player_move[0], player_move[1]) == false || checkIfCoordinatesWithinBoard(size, player_move[2], player_move[3]) == false)
+  if (checkIfCoordinatesWithinBoard(size, player_move[0], player_move[1]) == false ||
+      checkIfCoordinatesWithinBoard(size, player_move[2], player_move[3]) == false)
   {
     return 0;
   }
@@ -296,9 +376,17 @@ int movingPhase(char* user_input, int size, int board[size][size], int player)
   return 1;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Starts a players turn and determines wether its placing of moving phase
+///        Also validates if the command count matches the current phase requirements
+/// @param size The dimension the board
+/// @param board The game board array
+/// @param player Current player
+/// @param pieces_left Array containing the count of pieces remaining for both players
+/// @return 1 if a valid move was made, 0 if an error occurred (invalid command/logic), or -1 for Quit/EOF
 int checkBoard(int size, int board[size][size], int player, int* pieces_left)
 {
-  char user_input[INPUT_SIZE];   
+  char user_input[INPUT_SIZE];
   int command_counter = 0;
   printf("P%d > ", player);
   int status = getInput(user_input, INPUT_SIZE, &command_counter);
@@ -330,13 +418,18 @@ int checkBoard(int size, int board[size][size], int player, int* pieces_left)
     {
       printf("\n[ERROR] You must specify a piece to shift and a target field.\n\n");
       return 0;
-    } 
-    return movingPhase(user_input, size, board, player);   
+    }
+    return movingPhase(user_input, size, board, player);
   }
-
   return -1;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if any of winning patterns is reachec
+/// @param size The dimension the board
+/// @param board The game board array
+/// @param player Current player
+/// @return true if one matches, otherwise false
 bool checkWin(int size, int board[size][size], int player)
 {
   for (int row = 0; row < size; row++)
@@ -392,6 +485,14 @@ bool checkWin(int size, int board[size][size], int player)
   return false;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Determines whos turn it is. Contains main loop that handles game loop and ends game if someone winds
+/// @param size The dimension the board
+/// @param board The game board array
+/// @param color_status Passes on if game is colored or not
+/// @param player_1 ID for player 1
+/// @param player_2 ID for player 2
+/// @return Returns exit code
 int initializeGame(int size, int board[size][size], bool color_status, int player_1, int player_2)
 {
   int current_player = 0;
@@ -442,6 +543,10 @@ int initializeGame(int size, int board[size][size], bool color_status, int playe
   return 0;
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Checks if color mode is "enabled" or "disabled" (case-insensitive)
+/// @param argv The string argument to check
+/// @return 1 if the string is "enabled", 0 if "disabled", or -1 if it matches neither
 int checkCommandLineArgument(char* argv)
 {
   char lowercase_copy[INPUT_SIZE];
@@ -468,6 +573,11 @@ int checkCommandLineArgument(char* argv)
   }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Validates the number and content of command line arguments
+/// @param argc The count of command line arguments
+/// @param argv The array of command line argument strings
+/// @return 1 if color output is enabled, 0 if disabled (default), or -1 on error
 int returnCommandLineArgument(int argc, char* argv[])
 {
   if (argc > 2)
@@ -501,6 +611,11 @@ int returnCommandLineArgument(int argc, char* argv[])
   }
 }
 
+//----------------------------------------------------------------------------------------------------------------------
+/// @brief Handles argument validation, board initialization, and starts the main game loop
+/// @param argc The number of command line arguments
+/// @param argv The array of command line argument strings
+/// @return The exit code: the winning player ID (1 or 2), 0 for a valid game end, or -1 on error
 int main(int argc, char* argv[])
 {
   int state = returnCommandLineArgument(argc, argv);
@@ -508,10 +623,8 @@ int main(int argc, char* argv[])
   {
     return -1;
   }
-  else
-  {
-    int board[BOARD_SIZE][BOARD_SIZE] = {0};
-    printWelcome();
-    return initializeGame(BOARD_SIZE, board, state, PLAYER_ONE_ID, PLAYER_TWO_ID);
-  }
+
+  int board[BOARD_SIZE][BOARD_SIZE] = {0};
+  printWelcome();
+  return initializeGame(BOARD_SIZE, board, state, PLAYER_ONE_ID, PLAYER_TWO_ID);
 }
