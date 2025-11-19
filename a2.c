@@ -1,15 +1,10 @@
 //------------------------------------------------------------------------------
-// a2.c
-//
 // Game inspired by Teeko. 
 // Two players play against each other and try to reach a winning pattern.
 // Divided into placing phase and moving phase.
 //
-// Group: Clemens Brunner
-//
 // Author: 12513567
 //------------------------------------------------------------------------------
-//
 
 #include <stdio.h>
 #include <stdbool.h>
@@ -22,6 +17,7 @@
 #define PLAYER_ONE_ID (1)
 #define PLAYER_TWO_ID (2)
 #define PIECES_TO_PLACE (4)
+#define WINNING_PIECES (4)
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief Prints welcome message and game title
@@ -48,7 +44,7 @@ void printRemainingPieces(int player_1_pieces, int player_2_pieces)
 /// @param placing_command String of users placing position input
 /// @param row Pointer to store the calculated row index
 /// @param column Pointer to store the calculated column index 
-void returnPositionPlacing(char *placing_command, int *row, int *column)
+void getPositionPlacing(char *placing_command, int *row, int *column)
 {
   *row = placing_command[1] - '1';
   *column = toupper(placing_command[0]) - 'A';
@@ -58,7 +54,7 @@ void returnPositionPlacing(char *placing_command, int *row, int *column)
 /// @brief Converts input position into useable row and column position
 /// @param moving_command String of user move input
 /// @param moves Array to store row and column from where to move to dedicated destination
-void returnPositionMoving(char *moving_command, int* moves)
+void getPositionMoving(char *moving_command, int* moves)
 {
   moves[0] = moving_command[1] - '1';
   moves[1] = toupper(moving_command[0]) - 'A';
@@ -102,11 +98,11 @@ bool checkIfCoordinatesOccupied(int size, int board[size][size], int row, int co
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief Checks if input is a letter
-/// @param userInput Current input character
+/// @param user_input Current input character
 /// @return True if letter otherwise or false
-bool checkIfLetter(int userInput)
+bool checkIfLetter(int user_input)
 {
-  if ((userInput >= 'A' && userInput <= 'Z') || (userInput >= 'a' && userInput <= 'z'))
+  if ((user_input >= 'A' && user_input <= 'Z') || (user_input >= 'a' && user_input <= 'z'))
   {
     return true;
   }
@@ -115,11 +111,11 @@ bool checkIfLetter(int userInput)
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief Checks if input is a number
-/// @param userInput Current input character 
+/// @param user_input Current input character 
 /// @return True if letter otherwise or false
-bool checkIfNumber(int userInput)
+bool checkIfNumber(int user_input)
 {
-  if (userInput >= '0' && userInput <= '9')
+  if (user_input >= '0' && user_input <= '9')
   {
     return true;
   }
@@ -128,22 +124,22 @@ bool checkIfNumber(int userInput)
 
 //----------------------------------------------------------------------------------------------------------------------
 /// @brief Ignores leading whitepaces and copies every char after finding none space
-/// @param userInput Current input
+/// @param user_input Current input
 /// @param raw_buffer Array of input string 
 /// @param p_raw_index Keeps track index in string array
 /// @param p_leading_space Keeps track while user enters only spaces before first valid char
-void handleRawBufferChar(int userInput, char* raw_buffer, int* p_raw_index, bool* p_leading_space)
+void cleanRawBuffer(int user_input, char* raw_buffer, int* p_raw_index, bool* p_leading_space)
 {
-  if (*p_leading_space && !isspace(userInput) && userInput != '\n')
+  if (*p_leading_space && !isspace(user_input) && user_input != '\n')
   {
     *p_leading_space = false;
   }
   
-  if (!*p_leading_space && userInput != '\n')
+  if (!*p_leading_space && user_input != '\n')
   {
     if (*p_raw_index < INPUT_SIZE - 1) 
     {
-      raw_buffer[(*p_raw_index)++] = (char)userInput;
+      raw_buffer[(*p_raw_index)++] = (char)user_input;
     }
   }
 }
@@ -162,21 +158,21 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
 {
   int command_index = 0;
   int raw_index = 0;
-  int userInput;
+  int user_input;
   bool leading_space = true;
   *p_command_counter = 0;
   *p_expect_space = false;
 
   do
   {
-    userInput = getchar();
-    if (userInput == EOF)
+    user_input = getchar();
+    if (user_input == EOF)
     {
       return -1;
     }
-    handleRawBufferChar(userInput, raw_buffer, &raw_index, &leading_space);
+    cleanRawBuffer(user_input, raw_buffer, &raw_index, &leading_space);
 
-    if (isspace(userInput) || userInput == '\n')
+    if (isspace(user_input) || user_input == '\n')
     {
       if (*p_last_was_letter)
       {
@@ -188,7 +184,7 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
         *p_expect_space = false;
       }
     }
-    else if (checkIfLetter(userInput))
+    else if (checkIfLetter(user_input))
     {
       if (*p_expect_space || *p_last_was_letter) 
       {
@@ -197,10 +193,10 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
       *p_last_was_letter = true;
       if (command_index < INPUT_SIZE - 1)
       {
-        command_buffer[command_index++] = (char)userInput;
+        command_buffer[command_index++] = (char)user_input;
       }
     }
-    else if (checkIfNumber(userInput))
+    else if (checkIfNumber(user_input))
     {
       if (!*p_last_was_letter)
       {
@@ -212,14 +208,14 @@ int readUserInput(char* command_buffer, char* raw_buffer, bool* p_invalid_format
         
       if (command_index < INPUT_SIZE - 1)
       {
-        command_buffer[command_index++] = (char)userInput;
+        command_buffer[command_index++] = (char)user_input;
       }
       }
       else
       {
         *p_invalid_format = true; 
       }
-  } while (userInput != '\n');
+  } while (user_input != '\n');
   
   command_buffer[command_index] = '\0';
   raw_buffer[raw_index] = '\0';
@@ -297,7 +293,7 @@ int placingPhase(char* user_input, int size, int board[size][size], int player, 
 {
   int row = 0;
   int column = 0;
-  returnPositionPlacing(user_input, &row, &column);
+  getPositionPlacing(user_input, &row, &column);
 
   if (checkIfCoordinatesWithinBoard(size, row, column) && checkIfCoordinatesOccupied(size, board, row, column))
   {
@@ -348,7 +344,7 @@ bool checkAllowedMove(int* player_move)
 int movingPhase(char* user_input, int size, int board[size][size], int player)
 {
   int player_move[] = {0, 0, 0, 0};
-  returnPositionMoving (user_input, player_move);
+  getPositionMoving (user_input, player_move);
 
   if (checkIfCoordinatesWithinBoard(size, player_move[0], player_move[1]) == false ||
       checkIfCoordinatesWithinBoard(size, player_move[2], player_move[3]) == false)
@@ -441,7 +437,7 @@ bool checkWin(int size, int board[size][size], int player)
         continue;
       }
 
-      if (column <= size - 4)
+      if (column <= size - WINNING_PIECES)
       {
         if (board[row][column+1] == player && board[row][column+2] == player && board[row][column+3] == player)
         {
@@ -449,7 +445,7 @@ bool checkWin(int size, int board[size][size], int player)
         }
       }
 
-      if (row <= size - 4)
+      if (row <= size - WINNING_PIECES)
       {
         if (board[row+1][column] == player && board[row+2][column] == player && board[row+3][column] == player)
         {
@@ -465,7 +461,7 @@ bool checkWin(int size, int board[size][size], int player)
         }
       }
 
-      if (row <= size - 4 && column <= size - 4)
+      if (row <= size - WINNING_PIECES && column <= size - WINNING_PIECES)
       {
         if (board[row+1][column+1] == player && board[row+2][column+2] == player && board[row+3][column+3] == player)
         {
@@ -473,7 +469,7 @@ bool checkWin(int size, int board[size][size], int player)
         }
       }
 
-      if (row >= 3 && column <= size - 4)
+      if (row >= 3 && column <= size - WINNING_PIECES)
       {
         if (board[row-1][column+1] == player && board[row-2][column+2] == player && board[row-3][column+3] == player)
         {
